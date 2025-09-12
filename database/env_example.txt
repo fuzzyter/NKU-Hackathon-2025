@@ -1,0 +1,25 @@
+# MongoDB Configuration
+MONGO_URI=mongodb://localhost:27017/
+
+# JWT Configuration
+JWT_SECRET_KEY=your-super-secret-jwt-key-change-this-in-production
+
+# Flask Configuration
+FLASK_ENV=development
+FLASK_DEBUG=True
+
+# API Keys (Optional - for real market data)
+ALPHA_VANTAGE_API_KEY=your-alpha-vantage-api-key
+FINNHUB_API_KEY=your-finnhub-api-key
+
+# Redis Configuration (for caching and sessions)
+REDIS_URL=redis://localhost:6379/0
+
+# Email Configuration (for notifications)
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+
+# Frontend URL (for CORS)
+FRONTEND_URL=http://localhost:19006
