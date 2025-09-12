@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { TrendingUp, TrendingDown, DollarSign, Eye, Calendar, Target } from 'lucide-react-native';
+import { TrendingUp, TrendingDown, DollarSign, Eye, Calendar, Target, LogOut, User } from 'lucide-react-native';
 import { marketDataService } from '../../services/marketData';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Position {
   id: string;
@@ -83,6 +84,24 @@ const PORTFOLIO_SUMMARY = {
 export default function Portfolio() {
   const [selectedTab, setSelectedTab] = useState<'positions' | 'history'>('positions');
   const [realTimeData, setRealTimeData] = useState<{[key: string]: number}>({});
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Logout', 
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+          }
+        }
+      ]
+    );
+  };
 
   React.useEffect(() => {
     // Update real-time prices for positions
@@ -153,8 +172,21 @@ export default function Portfolio() {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Portfolio</Text>
-          <Text style={styles.subtitle}>Track your virtual trading performance</Text>
+          <View style={styles.headerContent}>
+            <View>
+              <Text style={styles.title}>Portfolio</Text>
+              <Text style={styles.subtitle}>Track your virtual trading performance</Text>
+            </View>
+            <View style={styles.userSection}>
+              <View style={styles.userInfo}>
+                <User size={20} color="#3B82F6" />
+                <Text style={styles.userName}>{user?.name || 'User'}</Text>
+              </View>
+              <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+                <LogOut size={20} color="#EF4444" />
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
 
         {/* Portfolio Summary */}
@@ -394,6 +426,30 @@ const styles = StyleSheet.create({
   header: {
     padding: 24,
     paddingTop: 16,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  userSection: {
+    alignItems: 'flex-end',
+  },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  userName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#3B82F6',
+    marginLeft: 6,
+  },
+  logoutButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#FEF2F2',
   },
   title: {
     fontSize: 28,

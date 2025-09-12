@@ -1,130 +1,235 @@
-# 📈 Trading Simulator
+# Trading Simulator - Full Stack Application
 
-A comprehensive options trading simulator built with React Native and Expo, designed for learning and practicing trading strategies in a risk-free environment.
-
-## 🚀 Features
-
-### 🎯 **Quest System**
-- Gamified learning experience with XP and levels
-- Progressive quest system from beginner to advanced
-- Achievement tracking and streak monitoring
-
-### 🧪 **Strategy Lab**
-- Interactive options strategy builder
-- Real-time P&L visualization
-- Pre-built strategy templates (Iron Condor, Straddle, Butterfly, etc.)
-- Black-Scholes option pricing model
-- Greeks calculations (Delta, Gamma, Theta, Vega)
-
-### 📊 **Portfolio Management**
-- Real-time portfolio tracking
-- Position monitoring with live P&L
-- Transaction history
-- Performance analytics
-
-### 📰 **Market Intelligence**
-- Real-time market news feed
-- Symbol-specific news filtering
-- Market impact indicators
-- Trending topics
-
-### ⚖️ **Risk Management**
-- Position sizing calculator
-- Risk-reward ratio analysis
-- Portfolio risk assessment
-- Breakeven calculations
-
-### 🏆 **Social Features**
-- Leaderboard with multiple categories
-- Achievement system
-- Progress tracking
-- Community rankings
-
-### 📚 **Education Center**
-- Video tutorials
-- Interactive quizzes
-- Learning modules
-- Progress tracking
-
-## 🛠️ Tech Stack
-
-- **Framework**: React Native with Expo
-- **Navigation**: Expo Router
-- **UI**: React Native with LinearGradient
-- **Icons**: Lucide React Native
-- **Language**: TypeScript
-- **State Management**: React Hooks
-
-## 📱 Screens
-
-1. **Quests** - Gamified learning dashboard
-2. **Strategy Lab** - Options strategy builder and testing
-3. **Portfolio** - Portfolio management and tracking
-4. **News** - Market news and analysis
-5. **Risk** - Risk management tools
-6. **Education** - Learning center with tutorials
-7. **Leaderboard** - Social rankings and achievements
-8. **Achievements** - Progress and accomplishment tracking
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js (v18 or higher)
-- Expo CLI
-- iOS Simulator or Android Emulator (optional)
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/fuzzyter/NKU-Hackathon-2025
-   cd NKU-Hackathon-2025
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Start the development server**
-   ```bash
-   npm run dev
-   ```
-
-4. **Run on your device**
-   - Scan the QR code with Expo Go app (mobile)
-   - Press `w` for web version
-   - Press `i` for iOS simulator
-   - Press `a` for Android emulator
-
-## 📦 Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build:web` - Build for web
-- `npm run lint` - Run linter
-
-## 🎮 How to Use
-
-### Strategy Lab
-1. Select a stock symbol (e.g., AAPL, TSLA)
-2. Choose from pre-built strategies or create custom positions
-3. View real-time P&L charts
-4. Analyze risk metrics and Greeks
-
-### Quest System
-1. Complete beginner quests to unlock advanced content
-2. Earn XP and level up
-3. Track your learning progress
-4. Unlock achievements
-
-### Portfolio Management
-1. Monitor your virtual positions
-2. Track performance metrics
-3. Review transaction history
-4. Analyze portfolio risk
+A comprehensive trading simulator application built with React Native (frontend), Flask (backend), and MongoDB (database) that allows users to learn options trading through gamified quests and collaborate with friends.
 
 ## 🏗️ Project Structure
 
+```
+Trading Simulator/
+├── frontend/                 # React Native/Expo App
+│   ├── app/                  # App screens and navigation
+│   ├── components/           # Reusable UI components
+│   ├── services/             # Frontend business logic
+│   ├── types/                # TypeScript type definitions
+│   ├── hooks/                # Custom React hooks
+│   ├── utils/                # Utility functions
+│   ├── assets/               # Images and static assets
+│   └── package.json          # Frontend dependencies
+├── backend/                  # Flask API Server
+│   ├── routes/               # API route handlers
+│   ├── models/               # Data models
+│   ├── services/             # Backend business logic
+│   ├── utils/                # Backend utilities
+│   ├── app.py                # Flask application entry point
+│   └── requirements.txt      # Python dependencies
+├── database/                 # Database schemas and connection
+│   ├── schemas.py            # MongoDB schemas and initialization
+│   ├── connection.py         # Database connection management
+│   └── env_example.txt       # Environment variables template
+└── README.md                 # This file
+```
+
+## 🚀 Features
+
+### Core Trading Features
+- **Options Trading Simulator** - Practice options strategies with virtual money
+- **Portfolio Management** - Track positions, P&L, and performance
+- **Strategy Lab** - Build and test complex options strategies
+- **Risk Calculator** - Analyze position risks and Greeks
+- **Market Data Integration** - Real-time stock and options data
+
+### Gamification & Learning
+- **Quest System** - Progressive learning through structured quests
+- **Achievement System** - Unlock badges and rewards
+- **Leaderboards** - Compete with other traders globally
+- **Education Modules** - Comprehensive options trading education
+
+### Collaboration Features
+- **Friends System** - Add friends and compare performance
+- **Study Groups** - Collaborative learning with friends
+- **Portfolio Sharing** - Share and compare portfolios
+- **Messaging** - Chat with friends and study groups
+- **Challenges** - Create and participate in trading competitions
+- **Activity Feed** - See what friends are doing
+
+## 🛠️ Technology Stack
+
+### Frontend
+- **React Native** - Cross-platform mobile development
+- **Expo** - Development platform and tools
+- **TypeScript** - Type-safe JavaScript
+- **React Navigation** - Navigation library
+- **Lucide React Native** - Icon library
+
+### Backend
+- **Flask** - Python web framework
+- **Flask-JWT-Extended** - JWT authentication
+- **Flask-CORS** - Cross-origin resource sharing
+- **PyMongo** - MongoDB driver for Python
+- **yfinance** - Yahoo Finance API wrapper
+
+### Database
+- **MongoDB** - NoSQL document database
+- **PyMongo** - MongoDB Python driver
+
+## 📋 Prerequisites
+
+- **Node.js** (v16 or higher)
+- **Python** (v3.8 or higher)
+- **MongoDB** (v4.4 or higher)
+- **Expo CLI** (`npm install -g @expo/cli`)
+- **Git**
+
+## 🔧 Installation & Setup
+
+### 1. Clone the Repository
+```bash
+git clone <repository-url>
+cd "Trading Simulator"
+```
+
+### 2. Database Setup
+
+#### Install MongoDB
+- **macOS**: `brew install mongodb-community`
+- **Windows**: Download from [MongoDB website](https://www.mongodb.com/try/download/community)
+- **Linux**: Follow [MongoDB installation guide](https://docs.mongodb.com/manual/installation/)
+
+#### Start MongoDB
+```bash
+# macOS/Linux
+mongod
+
+# Windows
+net start MongoDB
+```
+
+#### Initialize Database
+```bash
+cd database
+python schemas.py
+```
+
+### 3. Backend Setup
+
+```bash
+cd backend
+
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+# macOS/Linux:
+source venv/bin/activate
+# Windows:
+venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Create environment file
+cp ../database/env_example.txt .env
+
+# Edit .env file with your configuration
+# Set JWT_SECRET_KEY to a secure random string
+# Update MONGO_URI if needed
+
+# Run the Flask server
+python app.py
+```
+
+The backend API will be available at `http://localhost:5000`
+
+### 4. Frontend Setup
+
+```bash
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
+```
+
+The frontend will be available at `http://localhost:19006`
+
+## 📱 Usage
+
+### Getting Started
+1. **Register** - Create a new account with email and password
+2. **Complete Tutorial** - Go through the initial quest to learn basics
+3. **Explore Features** - Try the portfolio, lab, and leaderboard
+4. **Add Friends** - Search for and add friends to collaborate
+5. **Join Study Groups** - Create or join learning groups
+6. **Track Progress** - Monitor your learning journey and achievements
+
+### Key Features Walkthrough
+
+#### Portfolio Management
+- View your virtual portfolio with real-time P&L
+- Add positions by searching for stocks/options
+- Track performance over time
+- Compare with friends
+
+#### Strategy Lab
+- Build complex options strategies
+- Visualize profit/loss charts
+- Test different market scenarios
+- Learn strategy mechanics
+
+#### Learning System
+- Complete quests to unlock new content
+- Earn XP and level up
+- Unlock achievements and badges
+- Track learning progress
+
+#### Collaboration
+- Add friends and compare performance
+- Create study groups for collaborative learning
+- Share portfolio snapshots
+- Participate in group challenges
+
+## 🔐 API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - User login
+- `GET /api/auth/profile` - Get user profile
+- `PUT /api/auth/profile` - Update profile
+
+### Portfolio
+- `GET /api/portfolio/` - Get portfolio summary
+- `POST /api/portfolio/positions` - Add position
+- `DELETE /api/portfolio/positions/<id>` - Remove position
+- `GET /api/portfolio/history` - Get trade history
+
+### Market Data
+- `GET /api/market/quote/<symbol>` - Get stock quote
+- `GET /api/market/options/<symbol>` - Get options chain
+- `GET /api/market/search` - Search symbols
+- `GET /api/market/chart/<symbol>` - Get chart data
+
+### Friends & Collaboration
+- `GET /api/friends/` - Get friends list
+- `POST /api/friends/requests` - Send friend request
+- `POST /api/friends/requests/<id>/accept` - Accept friend request
+- `GET /api/friends/activities` - Get friend activities
+
+### Education
+- `GET /api/education/quests` - Get available quests
+- `POST /api/education/quests/<id>/start` - Start quest
+- `POST /api/education/quests/<id>/complete` - Complete quest
+
+### Leaderboard
+- `GET /api/leaderboard/` - Get leaderboard
+- `GET /api/leaderboard/categories` - Get categories
+- `GET /api/leaderboard/user-rank` - Get user rank
+
+## 🚀 Deployment
+
+### Backend Deployment (Heroku)
+1. Create `Procfile` in backend directory:
 ```
 Trading Simulator/
 ├── app/                    # App screens and navigation
@@ -149,39 +254,66 @@ Trading Simulator/
 └── assets/               # Images and icons
 ```
 
-## 🎯 Key Features Explained
+2. Deploy to Heroku:
+```bash
+cd backend
+heroku create your-app-name
+heroku addons:create mongolab:sandbox
+git subtree push --prefix backend heroku main
+```
 
-### Options Strategies
-- **Iron Condor**: Limited risk, limited reward strategy
-- **Straddle**: Direction-neutral strategy for volatility
-- **Butterfly**: Low-cost strategy with limited risk
-- **Covered Call**: Income generation strategy
-- **Protective Put**: Downside protection strategy
-- **Collar**: Combined protective strategy
-- **Strangle**: Similar to straddle but different strikes
-- **Calendar Spread**: Time-based strategy
+### Frontend Deployment (Expo)
+```bash
+cd frontend
+expo build:web
+expo publish
+```
 
-### Risk Management
-- Position sizing based on account value
-- Risk-reward ratio calculations
-- Portfolio diversification analysis
-- Breakeven point identification
+### Database (MongoDB Atlas)
+1. Create account at [MongoDB Atlas](https://www.mongodb.com/atlas)
+2. Create cluster and get connection string
+3. Update `MONGO_URI` in production environment
 
 ## 🤝 Contributing
 
-This project was created for the NKU Hackathon 2025 sponsored by Fidelity. Contributions and improvements are welcome!
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
-This project is part of the NKU Hackathon 2025 competition.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🏆 Hackathon Details
+## 🆘 Support
 
-- **Event**: NKU Hackathon 2025
-- **Sponsor**: Fidelity
-- **Theme**: Financial Technology Innovation
-- **Focus**: Options Trading Education and Simulation
+If you encounter any issues or have questions:
+
+1. Check the [Issues](https://github.com/your-repo/issues) page
+2. Create a new issue with detailed description
+3. Contact the development team
+
+## 🔮 Roadmap
+
+### Upcoming Features
+- [ ] Real-time chat with WebSocket
+- [ ] Push notifications
+- [ ] Advanced charting with technical indicators
+- [ ] Paper trading competitions
+- [ ] Mobile app deployment
+- [ ] Social media integration
+- [ ] Advanced analytics dashboard
+- [ ] API rate limiting and caching
+- [ ] Unit and integration tests
+- [ ] CI/CD pipeline
+
+### Version History
+- **v1.0.0** - Initial release with core features
+- **v1.1.0** - Added collaboration features
+- **v1.2.0** - Enhanced UI/UX and performance
+- **v2.0.0** - Full-stack architecture with Flask backend
 
 ---
 
-**Built with ❤️ for the NKU Hackathon 2025**
+**Happy Trading! 📈**
