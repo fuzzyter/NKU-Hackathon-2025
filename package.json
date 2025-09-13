@@ -1,0 +1,21 @@
+{
+  "name": "nku-hackathon-2025",
+  "version": "1.0.0",
+  "description": "A comprehensive options trading simulator built with React Native and Expo, designed for learning and practicing trading strategies in a risk-free environment.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fuzzyter/NKU-Hackathon-2025.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/fuzzyter/NKU-Hackathon-2025/issues"
+  },
+  "homepage": "https://github.com/fuzzyter/NKU-Hackathon-2025#readme"
+}

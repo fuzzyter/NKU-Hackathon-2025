@@ -94,10 +94,9 @@ def get_user_stats(user_id):
 
 # Experience Endpoints
 @app.route('/api/user/<user_id>/experience', methods=['POST'])
-def update_user_experience():
+def update_user_experience(user_id):
     """Update user experience points"""
     try:
-        user_id = request.view_args['user_id']
         data = request.json
         
         exp_gained = data.get('exp_gained', 0)
