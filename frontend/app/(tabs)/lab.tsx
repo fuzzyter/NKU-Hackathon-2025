@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, TextInput, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { TrendingUp, TrendingDown, DollarSign, Target, Settings, Play, Search, RefreshCw } from 'lucide-react-native';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { marketDataService } from '../../services/marketData';
 import { optionsStrategyService } from '../../services/optionsStrategies';
 
@@ -158,7 +158,7 @@ export default function StrategyLab() {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Select Symbol</Text>
             <TouchableOpacity onPress={loadMarketData} style={styles.refreshButton}>
-              <RefreshCw size={16} color="#3B82F6" />
+              <Ionicons name="refresh" size={16} color="#3B82F6" />
             </TouchableOpacity>
           </View>
           
@@ -207,7 +207,7 @@ export default function StrategyLab() {
             >
               {positions.length === 0 ? (
                 <View style={styles.emptyChart}>
-                  <TrendingUp size={48} color="#CBD5E1" />
+                  <MaterialIcons name="trending-up" size={48} color="#CBD5E1" />
                   <Text style={styles.emptyChartText}>Add positions to see P/L visualization</Text>
                 </View>
               ) : (
@@ -386,7 +386,7 @@ export default function StrategyLab() {
               ]}
               onPress={() => setSelectedType('call')}
             >
-              <TrendingUp size={20} color={selectedType === 'call' ? '#FFFFFF' : '#10B981'} />
+              <MaterialIcons name="trending-up" size={20} color={selectedType === 'call' ? '#FFFFFF' : '#10B981'} />
               <Text style={[
                 styles.optionTypeText,
                 selectedType === 'call' && styles.selectedOptionTypeText
@@ -402,7 +402,7 @@ export default function StrategyLab() {
               ]}
               onPress={() => setSelectedType('put')}
             >
-              <TrendingDown size={20} color={selectedType === 'put' ? '#FFFFFF' : '#EF4444'} />
+              <MaterialIcons name="trending-down" size={20} color={selectedType === 'put' ? '#FFFFFF' : '#EF4444'} />
               <Text style={[
                 styles.optionTypeText,
                 selectedType === 'put' && styles.selectedOptionTypeText
@@ -462,7 +462,7 @@ export default function StrategyLab() {
               }
               style={styles.addButtonGradient}
             >
-              <Target size={20} color="#FFFFFF" />
+              <MaterialIcons name="my-location" size={20} color="#FFFFFF" />
               <Text style={styles.addButtonText}>Add Position</Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -502,7 +502,7 @@ export default function StrategyLab() {
         {/* Action Buttons */}
         <View style={styles.actionButtonsContainer}>
           <TouchableOpacity style={styles.secondaryButton}>
-            <Settings size={20} color="#64748B" />
+            <Ionicons name="settings" size={20} color="#64748B" />
             <Text style={styles.secondaryButtonText}>Advanced Settings</Text>
           </TouchableOpacity>
           
@@ -517,7 +517,7 @@ export default function StrategyLab() {
               colors={positions.length === 0 ? ['#CBD5E1', '#94A3B8'] : ['#10B981', '#059669']}
               style={styles.primaryButtonGradient}
             >
-              <Play size={20} color="#FFFFFF" />
+              <Ionicons name="play" size={20} color="#FFFFFF" />
               <Text style={styles.primaryButtonText}>Execute Strategy</Text>
             </LinearGradient>
           </TouchableOpacity>

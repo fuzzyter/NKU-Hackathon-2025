@@ -51,7 +51,7 @@ A comprehensive options trading simulator built with React Native and Expo, desi
 - **Framework**: React Native with Expo
 - **Navigation**: Expo Router
 - **UI**: React Native with LinearGradient
-- **Icons**: Lucide React Native
+- **Icons**: Expo Vector Icons
 - **Language**: TypeScript
 - **State Management**: React Hooks
 
@@ -81,8 +81,9 @@ A comprehensive options trading simulator built with React Native and Expo, desi
    cd NKU-Hackathon-2025
    ```
 
-2. **Install dependencies**
+2. **Install frontend dependencies**
    ```bash
+   cd frontend
    npm install
    ```
 
@@ -99,9 +100,13 @@ A comprehensive options trading simulator built with React Native and Expo, desi
 
 ## 📦 Available Scripts
 
+**Frontend (from `/frontend` directory):**
 - `npm run dev` - Start development server
 - `npm run build:web` - Build for web
 - `npm run lint` - Run linter
+
+**Backend (from `/backend` directory):**
+- `python app.py` - Start backend server (optional)
 
 ## 🎮 How to Use
 
@@ -127,26 +132,32 @@ A comprehensive options trading simulator built with React Native and Expo, desi
 
 ```
 Trading Simulator/
-├── app/                    # App screens and navigation
-│   ├── (tabs)/            # Tab-based navigation
-│   │   ├── index.tsx      # Quests dashboard
-│   │   ├── lab.tsx        # Strategy Lab
-│   │   ├── portfolio.tsx  # Portfolio management
-│   │   ├── news.tsx       # News feed
-│   │   ├── risk.tsx       # Risk calculator
-│   │   ├── education.tsx  # Education center
-│   │   ├── leaderboard.tsx # Leaderboard
-│   │   └── achievements.tsx # Achievements
-├── services/              # Business logic services
-│   ├── marketData.ts      # Market data API
-│   ├── optionsStrategies.ts # Options strategies
-│   ├── riskCalculator.ts  # Risk calculations
-│   ├── newsService.ts     # News data
-│   ├── leaderboardService.ts # Leaderboard data
-│   └── educationService.ts # Education content
-├── hooks/                 # Custom React hooks
-│   └── useFrameworkReady.ts
-└── assets/               # Images and icons
+├── frontend/              # React Native Frontend
+│   ├── app/               # App screens and navigation
+│   │   ├── (tabs)/        # Tab-based navigation
+│   │   │   ├── index.tsx      # Quests dashboard
+│   │   │   ├── lab.tsx        # Strategy Lab
+│   │   │   ├── portfolio.tsx  # Portfolio management
+│   │   │   ├── news.tsx       # News feed
+│   │   │   ├── risk.tsx       # Risk calculator
+│   │   │   ├── education.tsx  # Education center
+│   │   │   ├── leaderboard.tsx # Leaderboard
+│   │   │   └── achievements.tsx # Achievements
+│   ├── services/          # Business logic services
+│   │   ├── marketData.ts      # Market data API
+│   │   ├── optionsStrategies.ts # Options strategies
+│   │   ├── riskCalculator.ts  # Risk calculations
+│   │   ├── newsService.ts     # News data
+│   │   ├── leaderboardService.ts # Leaderboard data
+│   │   └── educationService.ts # Education content
+│   ├── hooks/             # Custom React hooks
+│   │   └── useFrameworkReady.ts
+│   ├── assets/           # Images and icons
+│   ├── package.json      # Frontend dependencies
+│   └── tsconfig.json     # TypeScript configuration
+└── backend/              # Python Backend (optional)
+    ├── app.py            # Flask/FastAPI server
+    └── requirements.txt  # Backend dependencies
 ```
 
 ## 🎯 Key Features Explained

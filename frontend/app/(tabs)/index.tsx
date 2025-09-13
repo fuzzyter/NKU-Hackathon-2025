@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Play, Lock, CircleCheck as CheckCircle, Star, Zap } from 'lucide-react-native';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 
 const QUESTS = [
   {
@@ -67,11 +67,11 @@ export default function QuestDashboard() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle size={24} color="#10B981" />;
+        return <Ionicons name="checkmark-circle" size={24} color="#10B981" />;
       case 'available':
-        return <Play size={24} color="#3B82F6" />;
+        return <Ionicons name="play-circle" size={24} color="#3B82F6" />;
       case 'locked':
-        return <Lock size={24} color="#9CA3AF" />;
+        return <Ionicons name="lock-closed" size={24} color="#9CA3AF" />;
       default:
         return null;
     }
@@ -120,11 +120,11 @@ export default function QuestDashboard() {
           >
             <View style={styles.progressHeader}>
               <View style={styles.levelBadge}>
-                <Star size={16} color="#FFFFFF" />
+                <Ionicons name="star" size={16} color="#FFFFFF" />
                 <Text style={styles.levelText}>Level {USER_DATA.level}</Text>
               </View>
               <View style={styles.streakBadge}>
-                <Zap size={14} color="#F59E0B" />
+                <Ionicons name="flash" size={14} color="#F59E0B" />
                 <Text style={styles.streakText}>{USER_DATA.streak} day streak</Text>
               </View>
             </View>

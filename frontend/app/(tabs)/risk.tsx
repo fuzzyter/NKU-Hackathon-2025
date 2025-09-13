@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, TextInput, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Calculator, Shield, AlertTriangle, TrendingUp, TrendingDown, Target, DollarSign } from 'lucide-react-native';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { riskCalculator } from '../../services/riskCalculator';
 
 interface RiskInputs {
@@ -135,7 +135,7 @@ export default function RiskCalculator() {
               ]}
               onPress={() => setInputs(prev => ({ ...prev, positionType: 'long' }))}
             >
-              <TrendingUp size={20} color={inputs.positionType === 'long' ? '#FFFFFF' : '#10B981'} />
+              <MaterialIcons name="trending-up" size={20} color={inputs.positionType === 'long' ? '#FFFFFF' : '#10B981'} />
               <Text style={[
                 styles.positionTypeText,
                 inputs.positionType === 'long' && styles.selectedPositionTypeText
@@ -151,7 +151,7 @@ export default function RiskCalculator() {
               ]}
               onPress={() => setInputs(prev => ({ ...prev, positionType: 'short' }))}
             >
-              <TrendingDown size={20} color={inputs.positionType === 'short' ? '#FFFFFF' : '#EF4444'} />
+              <MaterialIcons name="trending-down" size={20} color={inputs.positionType === 'short' ? '#FFFFFF' : '#EF4444'} />
               <Text style={[
                 styles.positionTypeText,
                 inputs.positionType === 'short' && styles.selectedPositionTypeText
@@ -173,7 +173,7 @@ export default function RiskCalculator() {
               ]}
               onPress={() => setShowOptions(false)}
             >
-              <DollarSign size={20} color={!showOptions ? '#FFFFFF' : '#3B82F6'} />
+              <MaterialIcons name="attach-money" size={20} color={!showOptions ? '#FFFFFF' : '#3B82F6'} />
               <Text style={[
                 styles.assetTypeText,
                 !showOptions && styles.selectedAssetTypeText
@@ -189,7 +189,7 @@ export default function RiskCalculator() {
               ]}
               onPress={() => setShowOptions(true)}
             >
-              <Target size={20} color={showOptions ? '#FFFFFF' : '#3B82F6'} />
+              <MaterialIcons name="my-location" size={20} color={showOptions ? '#FFFFFF' : '#3B82F6'} />
               <Text style={[
                 styles.assetTypeText,
                 showOptions && styles.selectedAssetTypeText
@@ -303,7 +303,7 @@ export default function RiskCalculator() {
               colors={['#3B82F6', '#1D4ED8']}
               style={styles.calculateButtonGradient}
             >
-              <Calculator size={20} color="#FFFFFF" />
+              <Ionicons name="calculator" size={20} color="#FFFFFF" />
               <Text style={styles.calculateButtonText}>Calculate Risk</Text>
             </LinearGradient>
           </TouchableOpacity>

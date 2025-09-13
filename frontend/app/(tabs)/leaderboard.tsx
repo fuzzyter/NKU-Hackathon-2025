@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, TextInput, RefreshControl } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Trophy, Medal, Star, TrendingUp, Search, Filter, Crown, Award, Target } from 'lucide-react-native';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { leaderboardService } from '../../services/leaderboardService';
 
 interface LeaderboardEntry {
@@ -95,9 +95,9 @@ export default function Leaderboard() {
   };
 
   const getRankIcon = (rank: number) => {
-    if (rank === 1) return <Crown size={20} color="#F59E0B" />;
-    if (rank === 2) return <Medal size={20} color="#6B7280" />;
-    if (rank === 3) return <Award size={20} color="#CD7F32" />;
+    if (rank === 1) return <MaterialIcons name="emoji-events" size={20} color="#F59E0B" />;
+    if (rank === 2) return <Ionicons name="medal" size={20} color="#6B7280" />;
+    if (rank === 3) return <Ionicons name="ribbon" size={20} color="#CD7F32" />;
     return <Text style={styles.rankNumber}>#{rank}</Text>;
   };
 
@@ -125,7 +125,7 @@ export default function Leaderboard() {
               onPress={() => setShowSearch(!showSearch)}
               style={styles.searchButton}
             >
-              <Search size={20} color="#3B82F6" />
+              <Ionicons name="search" size={20} color="#3B82F6" />
             </TouchableOpacity>
           </View>
           <Text style={styles.subtitle}>Compete with traders worldwide</Text>
@@ -135,7 +135,7 @@ export default function Leaderboard() {
         {showSearch && (
           <View style={styles.searchContainer}>
             <View style={styles.searchBar}>
-              <Search size={20} color="#6B7280" />
+              <Ionicons name="search" size={20} color="#6B7280" />
               <TextInput
                 style={styles.searchInput}
                 placeholder="Search traders..."
@@ -191,7 +191,7 @@ export default function Leaderboard() {
               {/* 2nd Place */}
               <View style={styles.podiumItem}>
                 <View style={[styles.podiumPosition, styles.secondPlace]}>
-                  <Medal size={24} color="#6B7280" />
+                  <Ionicons name="medal" size={24} color="#6B7280" />
                   <Text style={styles.podiumRank}>2</Text>
                 </View>
                 <Text style={styles.podiumUsername}>{leaderboard[1].username}</Text>
@@ -203,7 +203,7 @@ export default function Leaderboard() {
               {/* 1st Place */}
               <View style={styles.podiumItem}>
                 <View style={[styles.podiumPosition, styles.firstPlace]}>
-                  <Crown size={28} color="#F59E0B" />
+                  <MaterialIcons name="emoji-events" size={28} color="#F59E0B" />
                   <Text style={styles.podiumRank}>1</Text>
                 </View>
                 <Text style={styles.podiumUsername}>{leaderboard[0].username}</Text>
@@ -215,7 +215,7 @@ export default function Leaderboard() {
               {/* 3rd Place */}
               <View style={styles.podiumItem}>
                 <View style={[styles.podiumPosition, styles.thirdPlace]}>
-                  <Award size={24} color="#CD7F32" />
+                  <Ionicons name="ribbon" size={24} color="#CD7F32" />
                   <Text style={styles.podiumRank}>3</Text>
                 </View>
                 <Text style={styles.podiumUsername}>{leaderboard[2].username}</Text>
@@ -267,7 +267,7 @@ export default function Leaderboard() {
                 <View style={styles.badgesContainer}>
                   {entry.badges.slice(0, 2).map((badge, badgeIndex) => (
                     <View key={badgeIndex} style={styles.badge}>
-                      <Star size={12} color="#F59E0B" />
+                      <Ionicons name="star" size={12} color="#F59E0B" />
                     </View>
                   ))}
                   {entry.badges.length > 2 && (
@@ -284,21 +284,21 @@ export default function Leaderboard() {
           <Text style={styles.quickStatsTitle}>Quick Stats</Text>
           <View style={styles.quickStatsGrid}>
             <View style={styles.quickStatCard}>
-              <TrendingUp size={24} color="#10B981" />
+              <MaterialIcons name="trending-up" size={24} color="#10B981" />
               <Text style={styles.quickStatValue}>
                 {leaderboard.length > 0 ? formatCurrency(leaderboard[0].totalPL) : '$0'}
               </Text>
               <Text style={styles.quickStatLabel}>Top Trader</Text>
             </View>
             <View style={styles.quickStatCard}>
-              <Target size={24} color="#3B82F6" />
+              <MaterialIcons name="my-location" size={24} color="#3B82F6" />
               <Text style={styles.quickStatValue}>
                 {leaderboard.length > 0 ? `${leaderboard[0].winRate}%` : '0%'}
               </Text>
               <Text style={styles.quickStatLabel}>Best Win Rate</Text>
             </View>
             <View style={styles.quickStatCard}>
-              <Trophy size={24} color="#F59E0B" />
+              <Ionicons name="trophy" size={24} color="#F59E0B" />
               <Text style={styles.quickStatValue}>
                 {leaderboard.length > 0 ? leaderboard[0].streak : 0}
               </Text>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, TextInput, RefreshControl } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BookOpen, Play, Clock, Star, Search, Filter, Award, Target, CheckCircle, Lock } from 'lucide-react-native';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { educationService } from '../../services/educationService';
 
 interface VideoTutorial {
@@ -136,13 +136,13 @@ export default function Education() {
     const category = CATEGORIES.find(c => c.id === categoryId);
     switch (category?.icon) {
       case 'target':
-        return <Target size={16} color="#3B82F6" />;
+        return <MaterialIcons name="my-location" size={16} color="#3B82F6" />;
       case 'award':
-        return <Award size={16} color="#F59E0B" />;
+        return <Ionicons name="ribbon" size={16} color="#F59E0B" />;
       case 'star':
-        return <Star size={16} color="#EF4444" />;
+        return <Ionicons name="star" size={16} color="#EF4444" />;
       default:
-        return <BookOpen size={16} color="#6B7280" />;
+        return <Ionicons name="book" size={16} color="#6B7280" />;
     }
   };
 
@@ -163,7 +163,7 @@ export default function Education() {
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <View style={styles.searchBar}>
-            <Search size={20} color="#6B7280" />
+            <Ionicons name="search" size={20} color="#6B7280" />
             <TextInput
               style={styles.searchInput}
               placeholder="Search videos, quizzes, and courses..."
@@ -208,7 +208,7 @@ export default function Education() {
             style={[styles.tab, activeTab === 'videos' && styles.activeTab]}
             onPress={() => setActiveTab('videos')}
           >
-            <Play size={16} color={activeTab === 'videos' ? '#3B82F6' : '#64748B'} />
+            <Ionicons name="play" size={16} color={activeTab === 'videos' ? '#3B82F6' : '#64748B'} />
             <Text style={[
               styles.tabText,
               activeTab === 'videos' && styles.activeTabText
@@ -221,7 +221,7 @@ export default function Education() {
             style={[styles.tab, activeTab === 'quizzes' && styles.activeTab]}
             onPress={() => setActiveTab('quizzes')}
           >
-            <Award size={16} color={activeTab === 'quizzes' ? '#3B82F6' : '#64748B'} />
+            <Ionicons name="ribbon" size={16} color={activeTab === 'quizzes' ? '#3B82F6' : '#64748B'} />
             <Text style={[
               styles.tabText,
               activeTab === 'quizzes' && styles.activeTabText
@@ -234,7 +234,7 @@ export default function Education() {
             style={[styles.tab, activeTab === 'paths' && styles.activeTab]}
             onPress={() => setActiveTab('paths')}
           >
-            <BookOpen size={16} color={activeTab === 'paths' ? '#3B82F6' : '#64748B'} />
+            <Ionicons name="book" size={16} color={activeTab === 'paths' ? '#3B82F6' : '#64748B'} />
             <Text style={[
               styles.tabText,
               activeTab === 'paths' && styles.activeTabText
@@ -262,7 +262,7 @@ export default function Education() {
                           colors={['#3B82F6', '#1D4ED8']}
                           style={styles.playButton}
                         >
-                          <Play size={20} color="#FFFFFF" />
+                          <Ionicons name="play" size={20} color="#FFFFFF" />
                         </LinearGradient>
                       </View>
                       
@@ -283,11 +283,11 @@ export default function Education() {
                         
                         <View style={styles.videoMeta}>
                           <View style={styles.metaItem}>
-                            <Clock size={12} color="#64748B" />
+                            <Ionicons name="time" size={12} color="#64748B" />
                             <Text style={styles.metaText}>{formatDuration(video.duration)}</Text>
                           </View>
                           <View style={styles.metaItem}>
-                            <Star size={12} color="#F59E0B" />
+                            <Ionicons name="star" size={12} color="#F59E0B" />
                             <Text style={styles.metaText}>{video.rating}</Text>
                           </View>
                           <View style={styles.metaItem}>
@@ -323,11 +323,11 @@ export default function Education() {
                       
                       <View style={styles.quizMeta}>
                         <View style={styles.metaItem}>
-                          <Clock size={12} color="#64748B" />
+                          <Ionicons name="time" size={12} color="#64748B" />
                           <Text style={styles.metaText}>{quiz.timeLimit} min</Text>
                         </View>
                         <View style={styles.metaItem}>
-                          <Target size={12} color="#3B82F6" />
+                          <MaterialIcons name="my-location" size={12} color="#3B82F6" />
                           <Text style={styles.metaText}>{quiz.passingScore}% to pass</Text>
                         </View>
                         <View style={styles.metaItem}>
@@ -371,11 +371,11 @@ export default function Education() {
                       
                       <View style={styles.pathMeta}>
                         <View style={styles.metaItem}>
-                          <Clock size={12} color="#64748B" />
+                          <Ionicons name="time" size={12} color="#64748B" />
                           <Text style={styles.metaText}>{path.estimatedTime}h estimated</Text>
                         </View>
                         <View style={styles.metaItem}>
-                          <BookOpen size={12} color="#3B82F6" />
+                          <Ionicons name="book" size={12} color="#3B82F6" />
                           <Text style={styles.metaText}>{path.modules.length} modules</Text>
                         </View>
                         <View style={styles.metaItem}>
@@ -390,11 +390,11 @@ export default function Education() {
                           <View key={module.id} style={styles.moduleItem}>
                             <View style={styles.moduleIcon}>
                               {module.completed ? (
-                                <CheckCircle size={16} color="#10B981" />
+                                <Ionicons name="checkmark-circle" size={16} color="#10B981" />
                               ) : module.locked ? (
-                                <Lock size={16} color="#9CA3AF" />
+                                <Ionicons name="lock-closed" size={16} color="#9CA3AF" />
                               ) : (
-                                <Play size={16} color="#3B82F6" />
+                                <Ionicons name="play" size={16} color="#3B82F6" />
                               )}
                             </View>
                             <Text style={[

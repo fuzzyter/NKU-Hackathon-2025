@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { TrendingUp, TrendingDown, DollarSign, Eye, Calendar, Target } from 'lucide-react-native';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { marketDataService } from '../../services/marketData';
 
 interface Position {
@@ -172,8 +172,8 @@ export default function Portfolio() {
                 { backgroundColor: PORTFOLIO_SUMMARY.dayChange >= 0 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)' }
               ]}>
                 {PORTFOLIO_SUMMARY.dayChange >= 0 ? 
-                  <TrendingUp size={16} color="#10B981" /> : 
-                  <TrendingDown size={16} color="#EF4444" />
+                  <MaterialIcons name="trending-up" size={16} color="#10B981" /> : 
+                  <MaterialIcons name="trending-down" size={16} color="#EF4444" />
                 }
                 <Text style={[
                   styles.changeText,
@@ -249,7 +249,7 @@ export default function Portfolio() {
           <View style={styles.section}>
             {MOCK_POSITIONS.length === 0 ? (
               <View style={styles.emptyState}>
-                <Target size={48} color="#CBD5E1" />
+                <MaterialIcons name="my-location" size={48} color="#CBD5E1" />
                 <Text style={styles.emptyStateText}>No positions yet</Text>
                 <Text style={styles.emptyStateSubtext}>
                   Complete quests in the Strategy Lab to build your portfolio
@@ -336,7 +336,7 @@ export default function Portfolio() {
                   </View>
 
                   <TouchableOpacity style={styles.viewDetailsButton}>
-                    <Eye size={16} color="#3B82F6" />
+                    <Ionicons name="eye" size={16} color="#3B82F6" />
                     <Text style={styles.viewDetailsText}>View Details</Text>
                   </TouchableOpacity>
                 </View>
@@ -350,7 +350,7 @@ export default function Portfolio() {
         {selectedTab === 'history' && (
           <View style={styles.section}>
             <View style={styles.emptyState}>
-              <Calendar size={48} color="#CBD5E1" />
+              <Ionicons name="calendar" size={48} color="#CBD5E1" />
               <Text style={styles.emptyStateText}>No trading history yet</Text>
               <Text style={styles.emptyStateSubtext}>
                 Your completed trades will appear here
@@ -366,7 +366,7 @@ export default function Portfolio() {
               colors={['#3B82F6', '#1D4ED8']}
               style={styles.quickActionGradient}
             >
-              <TrendingUp size={20} color="#FFFFFF" />
+              <MaterialIcons name="trending-up" size={20} color="#FFFFFF" />
               <Text style={styles.quickActionText}>New Position</Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -376,7 +376,7 @@ export default function Portfolio() {
               colors={['#10B981', '#059669']}
               style={styles.quickActionGradient}
             >
-              <DollarSign size={20} color="#FFFFFF" />
+              <MaterialIcons name="attach-money" size={20} color="#FFFFFF" />
               <Text style={styles.quickActionText}>Add Funds</Text>
             </LinearGradient>
           </TouchableOpacity>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, TextInput, RefreshControl } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Newspaper, Search, Filter, TrendingUp, TrendingDown, Clock, ExternalLink, Star } from 'lucide-react-native';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { newsService } from '../../services/newsService';
 
 interface NewsArticle {
@@ -127,13 +127,13 @@ export default function NewsFeed() {
     const category = CATEGORIES.find(c => c.id === categoryId);
     switch (category?.icon) {
       case 'trending-up':
-        return <TrendingUp size={16} color="#3B82F6" />;
+        return <MaterialIcons name="trending-up" size={16} color="#3B82F6" />;
       case 'trending-down':
-        return <TrendingDown size={16} color="#EF4444" />;
+        return <MaterialIcons name="trending-down" size={16} color="#EF4444" />;
       case 'star':
-        return <Star size={16} color="#F59E0B" />;
+        return <Ionicons name="star" size={16} color="#F59E0B" />;
       default:
-        return <Newspaper size={16} color="#6B7280" />;
+        return <Ionicons name="newspaper" size={16} color="#6B7280" />;
     }
   };
 
@@ -154,7 +154,7 @@ export default function NewsFeed() {
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <View style={styles.searchBar}>
-            <Search size={20} color="#6B7280" />
+            <Ionicons name="search" size={20} color="#6B7280" />
             <TextInput
               style={styles.searchInput}
               placeholder="Search news..."
@@ -217,7 +217,7 @@ export default function NewsFeed() {
                       </View>
                     </View>
                     <View style={styles.timeContainer}>
-                      <Clock size={12} color="#6B7280" />
+                      <Ionicons name="time" size={12} color="#6B7280" />
                       <Text style={styles.timeText}>{formatTimeAgo(article.publishedAt)}</Text>
                     </View>
                   </View>
@@ -252,7 +252,7 @@ export default function NewsFeed() {
                 <View style={styles.articleFooter}>
                   <Text style={styles.authorText}>By {article.author}</Text>
                   <TouchableOpacity style={styles.readMoreButton}>
-                    <ExternalLink size={14} color="#3B82F6" />
+                    <Ionicons name="open-outline" size={14} color="#3B82F6" />
                     <Text style={styles.readMoreText}>Read More</Text>
                   </TouchableOpacity>
                 </View>

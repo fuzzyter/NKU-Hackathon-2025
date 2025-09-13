@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Trophy, Star, Target, TrendingUp, Shield, Zap, Award, Lock } from 'lucide-react-native';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 
 interface Achievement {
   id: string;
@@ -112,17 +112,24 @@ export default function Achievements() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   const getIconComponent = (iconName: string, size: number, color: string) => {
-    const icons: any = {
-      'target': Target,
-      'trending-up': TrendingUp,
-      'shield': Shield,
-      'zap': Zap,
-      'star': Star,
-      'award': Award,
-      'trophy': Trophy,
-    };
-    const IconComponent = icons[iconName] || Target;
-    return <IconComponent size={size} color={color} />;
+    switch (iconName) {
+      case 'target':
+        return <MaterialIcons name="my-location" size={size} color={color} />;
+      case 'trending-up':
+        return <MaterialIcons name="trending-up" size={size} color={color} />;
+      case 'shield':
+        return <MaterialIcons name="security" size={size} color={color} />;
+      case 'zap':
+        return <Ionicons name="flash" size={size} color={color} />;
+      case 'star':
+        return <Ionicons name="star" size={size} color={color} />;
+      case 'award':
+        return <Ionicons name="ribbon" size={size} color={color} />;
+      case 'trophy':
+        return <Ionicons name="trophy" size={size} color={color} />;
+      default:
+        return <MaterialIcons name="my-location" size={size} color={color} />;
+    }
   };
 
   const getRarityColor = (rarity: string) => {
@@ -178,7 +185,7 @@ export default function Achievements() {
             style={styles.summaryCard}
           >
             <View style={styles.summaryHeader}>
-              <Trophy size={32} color="#FFFFFF" />
+              <Ionicons name="trophy" size={32} color="#FFFFFF" />
               <View style={styles.summaryStats}>
                 <Text style={styles.summaryTitle}>Your Progress</Text>
                 <Text style={styles.summaryText}>
@@ -242,7 +249,7 @@ export default function Achievements() {
                   {achievement.unlocked ? (
                     getIconComponent(achievement.icon, 24, '#FFFFFF')
                   ) : (
-                    <Lock size={24} color="#94A3B8" />
+                    <Ionicons name="lock-closed" size={24} color="#94A3B8" />
                   )}
                 </LinearGradient>
                 

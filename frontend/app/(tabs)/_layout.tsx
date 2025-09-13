@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { TrendingUp, Target, User, Trophy, Newspaper, Calculator, Crown, BookOpen } from 'lucide-react-native';
+import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 
 export default function TabLayout() {
   return (
@@ -26,7 +26,7 @@ export default function TabLayout() {
         options={{
           title: 'Quests',
           tabBarIcon: ({ size, color }) => (
-            <Target size={size} color={color} />
+            <MaterialIcons name="my-location" size={size} color={color} />
           ),
         }}
       />
@@ -35,7 +35,7 @@ export default function TabLayout() {
         options={{
           title: 'Strategy Lab',
           tabBarIcon: ({ size, color }) => (
-            <TrendingUp size={size} color={color} />
+            <MaterialIcons name="trending-up" size={size} color={color} />
           ),
         }}
       />
@@ -44,7 +44,7 @@ export default function TabLayout() {
         options={{
           title: 'Portfolio',
           tabBarIcon: ({ size, color }) => (
-            <User size={size} color={color} />
+            <Ionicons name="person" size={size} color={color} />
           ),
         }}
       />
@@ -53,7 +53,7 @@ export default function TabLayout() {
         options={{
           title: 'News',
           tabBarIcon: ({ size, color }) => (
-            <Newspaper size={size} color={color} />
+            <Ionicons name="newspaper" size={size} color={color} />
           ),
         }}
       />
@@ -62,7 +62,7 @@ export default function TabLayout() {
         options={{
           title: 'Risk',
           tabBarIcon: ({ size, color }) => (
-            <Calculator size={size} color={color} />
+            <Ionicons name="calculator" size={size} color={color} />
           ),
         }}
       />
@@ -71,7 +71,7 @@ export default function TabLayout() {
         options={{
           title: 'Education',
           tabBarIcon: ({ size, color }) => (
-            <BookOpen size={size} color={color} />
+            <Ionicons name="book" size={size} color={color} />
           ),
         }}
       />
@@ -80,7 +80,7 @@ export default function TabLayout() {
         options={{
           title: 'Leaderboard',
           tabBarIcon: ({ size, color }) => (
-            <Crown size={size} color={color} />
+            <MaterialIcons name="emoji-events" size={size} color={color} />
           ),
         }}
       />
@@ -89,7 +89,7 @@ export default function TabLayout() {
         options={{
           title: 'Achievements',
           tabBarIcon: ({ size, color }) => (
-            <Trophy size={size} color={color} />
+            <Ionicons name="trophy" size={size} color={color} />
           ),
         }}
       />
