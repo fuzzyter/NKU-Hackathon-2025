@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Trading Simulator",
-    "slug": "trading-simulator",
+    "name": "OPT LAB",
+    "slug": "opt-lab",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -15,7 +15,7 @@
       "bundler": "metro",
       "output": "single",
       "favicon": "./assets/images/favicon.png",
-      "name": "Trading Simulator",
+      "name": "OPT LAB",
       "shortName": "TradingSim"
     },
     "plugins": ["expo-router", "expo-font", "expo-web-browser"],
