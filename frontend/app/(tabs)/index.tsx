@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 const QUESTS = [
   {
@@ -11,7 +12,8 @@ const QUESTS = [
     xp: 50,
     status: 'completed',
     module: 'Options Basics',
-    difficulty: 'Beginner'
+    difficulty: 'Beginner',
+    quizId: 'what-is-option'
   },
   {
     id: 2,
@@ -20,7 +22,8 @@ const QUESTS = [
     xp: 75,
     status: 'available',
     module: 'Options Basics',
-    difficulty: 'Beginner'
+    difficulty: 'Beginner',
+    quizId: 'call-option'
   },
   {
     id: 3,
@@ -63,6 +66,7 @@ const USER_DATA = {
 
 export default function QuestDashboard() {
   const [selectedQuest, setSelectedQuest] = useState<number | null>(null);
+  const router = useRouter();
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -104,6 +108,17 @@ export default function QuestDashboard() {
   };
 
   const progressPercentage = (USER_DATA.xp / USER_DATA.nextLevelXp) * 100;
+
+  const handleQuestPress = (quest: any) => {
+    if (quest.status === 'locked') return;
+    
+    if (quest.quizId) {
+      router.push(`/quiz?questId=${quest.quizId}`);
+    } else {
+      // For quests without quiz, just toggle selection
+      setSelectedQuest(selectedQuest === quest.id ? null : quest.id);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -157,7 +172,7 @@ export default function QuestDashboard() {
                 selectedQuest === quest.id && styles.selectedQuest,
                 quest.status === 'locked' && styles.lockedQuest
               ]}
-              onPress={() => setSelectedQuest(selectedQuest === quest.id ? null : quest.id)}
+              onPress={() => handleQuestPress(quest)}
               disabled={quest.status === 'locked'}
             >
               <LinearGradient
