@@ -1,50 +1,83 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, TextInput, Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, TextInput, Alert, RefreshControl } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { marketDataService } from '../../services/marketData';
-import { optionsStrategyService } from '../../services/optionsStrategies';
 
 interface OptionPosition {
+  id: string;
+  symbol: string;
   type: 'call' | 'put';
   action: 'buy' | 'sell';
   strike: number;
   premium: number;
   quantity: number;
+  totalCost: number;
+  currentValue: number;
+  profitLoss: number;
+  timestamp: Date;
 }
 
-interface PLPoint {
-  price: number;
-  profit: number;
+interface DemoAccount {
+  cash: number;
+  totalValue: number;
+  positions: OptionPosition[];
+  totalPL: number;
 }
 
 export default function StrategyLab() {
+  // Demo Account State
+  const [demoAccount, setDemoAccount] = useState<DemoAccount>({
+    cash: 10000, // Starting with $10,000 demo cash
+    totalValue: 10000,
+    positions: [],
+    totalPL: 0
+  });
+
+  // Trading State
   const [symbol, setSymbol] = useState<string>('AAPL');
   const [stockPrice, setStockPrice] = useState<number>(150);
-  const [optionChain, setOptionChain] = useState<any>(null);
+  const [stockChange, setStockChange] = useState<number>(0);
+  const [stockChangePercent, setStockChangePercent] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  
+  // Option Selection
   const [selectedStrike, setSelectedStrike] = useState<number | null>(null);
   const [selectedType, setSelectedType] = useState<'call' | 'put' | null>(null);
   const [selectedAction, setSelectedAction] = useState<'buy' | 'sell' | null>(null);
-  const [positions, setPositions] = useState<OptionPosition[]>([]);
+  const [quantity, setQuantity] = useState<number>(1);
+  
+  // Popular symbols for quick selection
   const [popularSymbols] = useState<string[]>(['AAPL', 'TSLA', 'NVDA', 'MSFT', 'GOOGL']);
-  const [selectedStrategy, setSelectedStrategy] = useState<string | null>(null);
-  const [showStrategies, setShowStrategies] = useState<boolean>(false);
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     loadMarketData();
+    updatePortfolioValue();
+    
+    // Set up real-time updates every 30 seconds
+    intervalRef.current = setInterval(() => {
+      loadMarketData();
+      updatePortfolioValue();
+      setLastUpdate(new Date());
+    }, 30000);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
   }, [symbol]);
 
   const loadMarketData = async () => {
     setLoading(true);
     try {
-      const [quote, chain] = await Promise.all([
-        marketDataService.getStockQuote(symbol),
-        marketDataService.getOptionChain(symbol)
-      ]);
-      
+      const quote = await marketDataService.getStockQuote(symbol);
       setStockPrice(quote.price);
-      setOptionChain(chain);
+      setStockChange(quote.change);
+      setStockChangePercent(quote.changePercent);
     } catch (error) {
       Alert.alert('Error', 'Failed to load market data. Using demo data.');
       console.error('Market data error:', error);
@@ -53,116 +86,182 @@ export default function StrategyLab() {
     }
   };
 
-  const calculatePL = (): PLPoint[] => {
-    const points: PLPoint[] = [];
-    const minPrice = 80;
-    const maxPrice = 120;
-    const step = 1;
-
-    for (let price = minPrice; price <= maxPrice; price += step) {
+  const updatePortfolioValue = () => {
+    setDemoAccount(prev => {
       let totalPL = 0;
-
-      positions.forEach(position => {
+      const updatedPositions = prev.positions.map(position => {
         const intrinsicValue = position.type === 'call' 
-          ? Math.max(0, price - position.strike)
-          : Math.max(0, position.strike - price);
+          ? Math.max(0, stockPrice - position.strike)
+          : Math.max(0, position.strike - stockPrice);
         
-        const positionValue = intrinsicValue * position.quantity * 100; // 100 shares per contract
-        const premiumPaid = position.premium * position.quantity * 100;
+        const currentValue = intrinsicValue * position.quantity * 100;
+        const profitLoss = position.action === 'buy' 
+          ? currentValue - position.totalCost
+          : position.totalCost - currentValue;
         
-        if (position.action === 'buy') {
-          totalPL += positionValue - premiumPaid;
-        } else {
-          totalPL += premiumPaid - positionValue;
-        }
+        totalPL += profitLoss;
+        
+        return {
+          ...position,
+          currentValue,
+          profitLoss
+        };
       });
 
-      points.push({ price, profit: totalPL });
-    }
-
-    return points;
+      return {
+        ...prev,
+        positions: updatedPositions,
+        totalPL,
+        totalValue: prev.cash + totalPL
+      };
+    });
   };
 
-  const addPosition = () => {
-    if (!selectedStrike || !selectedType || !selectedAction || !optionChain) return;
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadMarketData();
+    updatePortfolioValue();
+    setRefreshing(false);
+    setLastUpdate(new Date());
+  };
 
-    const optionData = selectedType === 'call'
-      ? optionChain.calls.find((c: any) => c.strike === selectedStrike)
-      : optionChain.puts.find((p: any) => p.strike === selectedStrike);
+  const executeTrade = () => {
+    if (!selectedStrike || !selectedType || !selectedAction) {
+      Alert.alert('Error', 'Please select strike price, option type, and action');
+      return;
+    }
 
-    if (!optionData) return;
+    // Calculate option premium (simplified)
+    const intrinsicValue = selectedType === 'call' 
+      ? Math.max(0, stockPrice - selectedStrike)
+      : Math.max(0, selectedStrike - stockPrice);
+    
+    const timeValue = Math.max(0.5, (Math.random() * 5)); // Random time value
+    const premium = intrinsicValue + timeValue;
+    const totalCost = premium * quantity * 100;
 
+    // Check if user has enough cash
+    if (selectedAction === 'buy' && totalCost > demoAccount.cash) {
+      Alert.alert('Insufficient Funds', `You need $${totalCost.toFixed(2)} but only have $${demoAccount.cash.toFixed(2)}`);
+      return;
+    }
+
+    // Create new position
     const newPosition: OptionPosition = {
+      id: Date.now().toString(),
+      symbol,
       type: selectedType,
       action: selectedAction,
       strike: selectedStrike,
-      premium: optionData.lastPrice,
-      quantity: 1,
+      premium,
+      quantity,
+      totalCost,
+      currentValue: 0,
+      profitLoss: 0,
+      timestamp: new Date()
     };
 
-    setPositions([...positions, newPosition]);
+    // Update account
+    setDemoAccount(prev => {
+      const newCash = selectedAction === 'buy' 
+        ? prev.cash - totalCost 
+        : prev.cash + totalCost;
+      
+      const newPositions = selectedAction === 'sell' 
+        ? prev.positions.filter(p => !(p.symbol === symbol && p.type === selectedType && p.strike === selectedStrike))
+        : [...prev.positions, newPosition];
+
+      return {
+        ...prev,
+        cash: newCash,
+        positions: newPositions
+      };
+    });
+
+    // Reset selection
     setSelectedStrike(null);
     setSelectedType(null);
     setSelectedAction(null);
+    setQuantity(1);
+
+    Alert.alert(
+      'Trade Executed', 
+      `${selectedAction.toUpperCase()} ${quantity} ${selectedType.toUpperCase()} ${symbol} $${selectedStrike} @ $${premium.toFixed(2)}`
+    );
   };
 
-  const clearPositions = () => {
-    setPositions([]);
+  const closePosition = (positionId: string) => {
+    setDemoAccount(prev => {
+      const position = prev.positions.find(p => p.id === positionId);
+      if (!position) return prev;
+
+      const intrinsicValue = position.type === 'call' 
+        ? Math.max(0, stockPrice - position.strike)
+        : Math.max(0, position.strike - stockPrice);
+      
+      const currentValue = intrinsicValue * position.quantity * 100;
+      const newCash = position.action === 'buy' 
+        ? prev.cash + currentValue
+        : prev.cash - currentValue;
+
+      return {
+        ...prev,
+        cash: newCash,
+        positions: prev.positions.filter(p => p.id !== positionId)
+      };
+    });
   };
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'beginner':
-        return '#10B981';
-      case 'intermediate':
-        return '#F59E0B';
-      case 'advanced':
-        return '#EF4444';
-      default:
-        return '#6B7280';
+  // Generate strike prices around current stock price
+  const generateStrikes = () => {
+    const strikes = [];
+    const baseStrike = Math.round(stockPrice / 5) * 5;
+    for (let i = -5; i <= 5; i++) {
+      const strike = baseStrike + (i * 5);
+      if (strike > 0) strikes.push(strike);
     }
+    return strikes.sort((a, b) => a - b);
   };
-
-  const getRiskColor = (riskLevel: string) => {
-    switch (riskLevel) {
-      case 'low':
-        return '#10B981';
-      case 'medium':
-        return '#F59E0B';
-      case 'high':
-        return '#EF4444';
-      default:
-        return '#6B7280';
-    }
-  };
-
-  const plData = calculatePL();
-  const maxProfit = Math.max(...plData.map(p => p.profit));
-  const maxLoss = Math.min(...plData.map(p => p.profit));
-  const breakeven = plData.find(p => Math.abs(p.profit) < 50)?.price || null;
-
-  const currentPrice = stockPrice;
-  const currentPL = plData.find(p => Math.abs(p.price - currentPrice) < 0.5)?.profit || 0;
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Strategy Lab</Text>
-          <Text style={styles.subtitle}>Build strategies with real market data</Text>
+          <Text style={styles.title}>Trading Simulator</Text>
+          <Text style={styles.subtitle}>Practice options trading with demo cash</Text>
         </View>
 
-        {/* Symbol Selection */}
+        {/* Demo Account Balance */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Select Symbol</Text>
-            <TouchableOpacity onPress={loadMarketData} style={styles.refreshButton}>
-              <Ionicons name="refresh" size={16} color="#3B82F6" />
-            </TouchableOpacity>
+          <View style={styles.balanceCard}>
+            <LinearGradient
+              colors={['#3B82F6', '#1D4ED8']}
+              style={styles.balanceGradient}
+            >
+              <Text style={styles.balanceTitle}>Demo Account</Text>
+              <Text style={styles.balanceAmount}>${demoAccount.totalValue.toFixed(2)}</Text>
+              <View style={styles.balanceDetails}>
+                <Text style={styles.balanceDetail}>Cash: ${demoAccount.cash.toFixed(2)}</Text>
+                <Text style={[
+                  styles.balanceDetail,
+                  { color: demoAccount.totalPL >= 0 ? '#10B981' : '#EF4444' }
+                ]}>
+                  P&L: {demoAccount.totalPL >= 0 ? '+' : ''}${demoAccount.totalPL.toFixed(2)}
+                </Text>
+              </View>
+            </LinearGradient>
           </View>
-          
-          {/* Popular Symbols */}
+        </View>
+
+        {/* Stock Selection */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Select Stock</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.symbolsContainer}>
             {popularSymbols.map(popularSymbol => (
               <TouchableOpacity
@@ -183,11 +282,17 @@ export default function StrategyLab() {
             ))}
           </ScrollView>
 
-          {/* Stock Price Display */}
+          {/* Current Stock Price */}
           <View style={styles.stockPriceCard}>
             <View style={styles.stockInfo}>
               <Text style={styles.currentSymbol}>{symbol}</Text>
               <Text style={styles.currentPrice}>${stockPrice.toFixed(2)}</Text>
+              <Text style={[
+                styles.changeText,
+                { color: stockChange >= 0 ? '#10B981' : '#EF4444' }
+              ]}>
+                {stockChange >= 0 ? '+' : ''}${stockChange.toFixed(2)} ({stockChangePercent.toFixed(2)}%)
+              </Text>
             </View>
             {loading && (
               <View style={styles.loadingIndicator}>
@@ -197,331 +302,185 @@ export default function StrategyLab() {
           </View>
         </View>
 
-        {/* P/L Chart Visualization */}
+        {/* Option Trading Interface */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Profit/Loss Chart</Text>
-          <View style={styles.chartContainer}>
-            <LinearGradient
-              colors={['#F8FAFC', '#FFFFFF']}
-              style={styles.chart}
-            >
-              {positions.length === 0 ? (
-                <View style={styles.emptyChart}>
-                  <MaterialIcons name="trending-up" size={48} color="#CBD5E1" />
-                  <Text style={styles.emptyChartText}>Add positions to see P/L visualization</Text>
-                </View>
-              ) : (
-                <View style={styles.chartContent}>
-                  {/* Simple P/L visualization */}
-                  <View style={styles.plLine}>
-                    {plData.map((point, index) => (
-                      <View
-                        key={index}
-                        style={[
-                          styles.plPoint,
-                          {
-                            height: Math.max(2, Math.abs(point.profit) / 100),
-                            backgroundColor: point.profit >= 0 ? '#10B981' : '#EF4444',
-                          }
-                        ]}
-                      />
-                    ))}
-                  </View>
-                  <Text style={styles.chartAxisLabel}>Stock Price: $80 - $120</Text>
-                </View>
-              )}
-            </LinearGradient>
-          </View>
-        </View>
-
-        {/* Strategy Metrics */}
-        {positions.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Strategy Metrics</Text>
-            <View style={styles.metricsGrid}>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricValue}>
-                  ${currentPL >= 0 ? '+' : ''}
-                  {currentPL.toFixed(0)}
-                </Text>
-                <Text style={styles.metricLabel}>Current P/L</Text>
-              </View>
-              <View style={styles.metricCard}>
-                <Text style={[styles.metricValue, { color: '#10B981' }]}>
-                  {maxProfit === Infinity ? 'Unlimited' : `$${maxProfit.toFixed(0)}`}
-                </Text>
-                <Text style={styles.metricLabel}>Max Profit</Text>
-              </View>
-              <View style={styles.metricCard}>
-                <Text style={[styles.metricValue, { color: '#EF4444' }]}>
-                  ${maxLoss.toFixed(0)}
-                </Text>
-                <Text style={styles.metricLabel}>Max Loss</Text>
-              </View>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricValue}>
-                  {breakeven ? `$${breakeven}` : 'N/A'}
-                </Text>
-                <Text style={styles.metricLabel}>Breakeven</Text>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Options Strategies */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Options Strategies</Text>
-            <TouchableOpacity 
-              onPress={() => setShowStrategies(!showStrategies)}
-              style={styles.toggleButton}
-            >
-              <Text style={styles.toggleButtonText}>
-                {showStrategies ? 'Hide' : 'Show'} Strategies
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <Text style={styles.sectionTitle}>Place Trade</Text>
           
-          {showStrategies && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.strategiesContainer}>
-              {optionsStrategyService.getAllStrategies().map(strategy => (
+          {/* Strike Price Selection */}
+          <View style={styles.strikeSection}>
+            <Text style={styles.inputLabel}>Strike Price</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.strikesContainer}>
+              {generateStrikes().map(strike => (
                 <TouchableOpacity
-                  key={strategy.id}
+                  key={strike}
                   style={[
-                    styles.strategyCard,
-                    selectedStrategy === strategy.id && styles.selectedStrategy
+                    styles.strikeButton,
+                    selectedStrike === strike && styles.selectedStrike
                   ]}
-                  onPress={() => {
-                    setSelectedStrategy(selectedStrategy === strategy.id ? null : strategy.id);
-                    if (selectedStrategy !== strategy.id) {
-                      // Auto-populate positions based on strategy
-                      const strategyPositions = strategy.setup.positions
-                        .filter(p => p.strike > 0) // Filter out stock positions
-                        .map(p => ({
-                          type: p.type,
-                          action: p.action,
-                          strike: p.strike,
-                          premium: 2.5, // Default premium
-                          quantity: p.quantity
-                        }));
-                      setPositions(strategyPositions);
-                    }
-                  }}
+                  onPress={() => setSelectedStrike(strike)}
                 >
                   <Text style={[
-                    styles.strategyName,
-                    selectedStrategy === strategy.id && styles.selectedStrategyText
+                    styles.strikeText,
+                    selectedStrike === strike && styles.selectedStrikeText
                   ]}>
-                    {strategy.name}
+                    ${strike}
                   </Text>
-                  <Text style={[
-                    styles.strategyDescription,
-                    selectedStrategy === strategy.id && styles.selectedStrategyText
-                  ]}>
-                    {strategy.description}
-                  </Text>
-                  <View style={styles.strategyMeta}>
-                    <View style={[
-                      styles.difficultyBadge,
-                      { backgroundColor: getDifficultyColor(strategy.difficulty) }
-                    ]}>
-                      <Text style={styles.difficultyText}>
-                        {strategy.difficulty.toUpperCase()}
-                      </Text>
-                    </View>
-                    <View style={[
-                      styles.riskBadge,
-                      { backgroundColor: getRiskColor(strategy.riskLevel) }
-                    ]}>
-                      <Text style={styles.riskText}>
-                        {strategy.riskLevel.toUpperCase()}
-                      </Text>
-                    </View>
-                  </View>
                 </TouchableOpacity>
               ))}
             </ScrollView>
-          )}
-        </View>
+          </View>
 
-        {/* Option Chain */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Option Chain</Text>
-          
-          {!optionChain ? (
-            <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>Loading option chain...</Text>
-            </View>
-          ) : (
-            <>
-          {/* Strike Selection */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.strikesContainer}>
-              {optionChain.calls.map((option: any) => (
+          {/* Option Type Selection */}
+          <View style={styles.optionTypeSection}>
+            <Text style={styles.inputLabel}>Option Type</Text>
+            <View style={styles.optionTypeContainer}>
               <TouchableOpacity
-                key={option.strike}
                 style={[
-                  styles.strikeButton,
-                  selectedStrike === option.strike && styles.selectedStrike
+                  styles.optionTypeButton,
+                  selectedType === 'call' && styles.selectedOptionType
                 ]}
-                onPress={() => setSelectedStrike(option.strike)}
+                onPress={() => setSelectedType('call')}
               >
+                <MaterialIcons name="trending-up" size={20} color={selectedType === 'call' ? '#FFFFFF' : '#10B981'} />
                 <Text style={[
-                  styles.strikeText,
-                  selectedStrike === option.strike && styles.selectedStrikeText
+                  styles.optionTypeText,
+                  selectedType === 'call' && styles.selectedOptionTypeText
                 ]}>
-                  ${option.strike}
+                  Call
                 </Text>
               </TouchableOpacity>
-            ))}
-          </ScrollView>
-            </>
-          )}
-
-          {/* Call/Put Selection */}
-          <View style={styles.optionTypeContainer}>
-            <TouchableOpacity
-              style={[
-                styles.optionTypeButton,
-                selectedType === 'call' && styles.selectedOptionType
-              ]}
-              onPress={() => setSelectedType('call')}
-            >
-              <MaterialIcons name="trending-up" size={20} color={selectedType === 'call' ? '#FFFFFF' : '#10B981'} />
-              <Text style={[
-                styles.optionTypeText,
-                selectedType === 'call' && styles.selectedOptionTypeText
-              ]}>
-                Call
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={[
-                styles.optionTypeButton,
-                selectedType === 'put' && styles.selectedOptionType
-              ]}
-              onPress={() => setSelectedType('put')}
-            >
-              <MaterialIcons name="trending-down" size={20} color={selectedType === 'put' ? '#FFFFFF' : '#EF4444'} />
-              <Text style={[
-                styles.optionTypeText,
-                selectedType === 'put' && styles.selectedOptionTypeText
-              ]}>
-                Put
-              </Text>
-            </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[
+                  styles.optionTypeButton,
+                  selectedType === 'put' && styles.selectedOptionType
+                ]}
+                onPress={() => setSelectedType('put')}
+              >
+                <MaterialIcons name="trending-down" size={20} color={selectedType === 'put' ? '#FFFFFF' : '#EF4444'} />
+                <Text style={[
+                  styles.optionTypeText,
+                  selectedType === 'put' && styles.selectedOptionTypeText
+                ]}>
+                  Put
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Buy/Sell Selection */}
-          <View style={styles.actionContainer}>
-            <TouchableOpacity
-              style={[
-                styles.actionButton,
-                selectedAction === 'buy' && styles.selectedAction
-              ]}
-              onPress={() => setSelectedAction('buy')}
-            >
-              <Text style={[
-                styles.actionText,
-                selectedAction === 'buy' && styles.selectedActionText
-              ]}>
-                Buy
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={[
-                styles.actionButton,
-                selectedAction === 'sell' && styles.selectedAction
-              ]}
-              onPress={() => setSelectedAction('sell')}
-            >
-              <Text style={[
-                styles.actionText,
-                selectedAction === 'sell' && styles.selectedActionText
-              ]}>
-                Sell
-              </Text>
-            </TouchableOpacity>
+          <View style={styles.actionSection}>
+            <Text style={styles.inputLabel}>Action</Text>
+            <View style={styles.actionContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  selectedAction === 'buy' && styles.selectedAction
+                ]}
+                onPress={() => setSelectedAction('buy')}
+              >
+                <Text style={[
+                  styles.actionText,
+                  selectedAction === 'buy' && styles.selectedActionText
+                ]}>
+                  Buy
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  selectedAction === 'sell' && styles.selectedAction
+                ]}
+                onPress={() => setSelectedAction('sell')}
+              >
+                <Text style={[
+                  styles.actionText,
+                  selectedAction === 'sell' && styles.selectedActionText
+                ]}>
+                  Sell
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {/* Add Position Button */}
+          {/* Quantity Selection */}
+          <View style={styles.quantitySection}>
+            <Text style={styles.inputLabel}>Quantity</Text>
+            <View style={styles.quantityContainer}>
+              <TouchableOpacity
+                style={styles.quantityButton}
+                onPress={() => setQuantity(Math.max(1, quantity - 1))}
+              >
+                <Text style={styles.quantityButtonText}>-</Text>
+              </TouchableOpacity>
+              <Text style={styles.quantityText}>{quantity}</Text>
+              <TouchableOpacity
+                style={styles.quantityButton}
+                onPress={() => setQuantity(quantity + 1)}
+              >
+                <Text style={styles.quantityButtonText}>+</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Execute Trade Button */}
           <TouchableOpacity
             style={[
-              styles.addButton,
-              (!selectedStrike || !selectedType || !selectedAction || !optionChain) && styles.disabledButton
+              styles.executeButton,
+              (!selectedStrike || !selectedType || !selectedAction) && styles.disabledButton
             ]}
-            onPress={addPosition}
-            disabled={!selectedStrike || !selectedType || !selectedAction || !optionChain}
+            onPress={executeTrade}
+            disabled={!selectedStrike || !selectedType || !selectedAction}
           >
             <LinearGradient
               colors={
-                !selectedStrike || !selectedType || !selectedAction || !optionChain
+                !selectedStrike || !selectedType || !selectedAction
                   ? ['#CBD5E1', '#94A3B8']
-                  : ['#3B82F6', '#1D4ED8']
+                  : ['#10B981', '#059669']
               }
-              style={styles.addButtonGradient}
+              style={styles.executeButtonGradient}
             >
-              <MaterialIcons name="my-location" size={20} color="#FFFFFF" />
-              <Text style={styles.addButtonText}>Add Position</Text>
+              <MaterialIcons name="swap-horiz" size={20} color="#FFFFFF" />
+              <Text style={styles.executeButtonText}>Execute Trade</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
 
         {/* Current Positions */}
-        {positions.length > 0 && (
+        {demoAccount.positions.length > 0 && (
           <View style={styles.section}>
-            <View style={styles.positionsHeader}>
-              <Text style={styles.sectionTitle}>Current Positions</Text>
-              <TouchableOpacity onPress={clearPositions} style={styles.clearButton}>
-                <Text style={styles.clearButtonText}>Clear All</Text>
-              </TouchableOpacity>
-            </View>
-            
-            {positions.map((position, index) => (
-              <View key={index} style={styles.positionCard}>
+            <Text style={styles.sectionTitle}>Current Positions</Text>
+            {demoAccount.positions.map((position) => (
+              <View key={position.id} style={styles.positionCard}>
                 <View style={styles.positionHeader}>
                   <Text style={styles.positionTitle}>
                     {position.action.toUpperCase()} {position.type.toUpperCase()}
                   </Text>
-                  <Text style={styles.positionStrike}>${position.strike}</Text>
+                  <TouchableOpacity
+                    style={styles.closeButton}
+                    onPress={() => closePosition(position.id)}
+                  >
+                    <MaterialIcons name="close" size={16} color="#EF4444" />
+                  </TouchableOpacity>
                 </View>
+                <Text style={styles.positionSymbol}>{position.symbol} ${position.strike}</Text>
                 <Text style={styles.positionDetails}>
-                  Premium: ${position.premium} × {position.quantity} contract
-                  {position.quantity > 1 ? 's' : ''}
+                  Premium: ${position.premium.toFixed(2)} × {position.quantity} contract{position.quantity > 1 ? 's' : ''}
                 </Text>
-                <Text style={styles.positionValue}>
-                  Total: {position.action === 'buy' ? '-' : '+'}
-                  ${(position.premium * position.quantity * 100).toFixed(0)}
+                <Text style={styles.positionDetails}>
+                  Cost: ${position.totalCost.toFixed(2)}
+                </Text>
+                <Text style={[
+                  styles.positionPL,
+                  { color: position.profitLoss >= 0 ? '#10B981' : '#EF4444' }
+                ]}>
+                  P&L: {position.profitLoss >= 0 ? '+' : ''}${position.profitLoss.toFixed(2)}
                 </Text>
               </View>
             ))}
           </View>
         )}
-
-        {/* Action Buttons */}
-        <View style={styles.actionButtonsContainer}>
-          <TouchableOpacity style={styles.secondaryButton}>
-            <Ionicons name="settings" size={20} color="#64748B" />
-            <Text style={styles.secondaryButtonText}>Advanced Settings</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[
-              styles.primaryButton,
-              positions.length === 0 && styles.disabledButton
-            ]}
-            disabled={positions.length === 0}
-          >
-            <LinearGradient
-              colors={positions.length === 0 ? ['#CBD5E1', '#94A3B8'] : ['#10B981', '#059669']}
-              style={styles.primaryButtonGradient}
-            >
-              <Ionicons name="play" size={20} color="#FFFFFF" />
-              <Text style={styles.primaryButtonText}>Execute Strategy</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -546,17 +505,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#64748B',
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  refreshButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: '#F1F5F9',
-  },
   section: {
     padding: 24,
     paddingTop: 8,
@@ -567,6 +515,39 @@ const styles = StyleSheet.create({
     color: '#1E293B',
     marginBottom: 16,
   },
+  
+  // Balance Card
+  balanceCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  balanceGradient: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  balanceTitle: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    opacity: 0.9,
+    marginBottom: 8,
+  },
+  balanceAmount: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 12,
+  },
+  balanceDetails: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  balanceDetail: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    opacity: 0.9,
+  },
+
+  // Symbol Selection
   symbolsContainer: {
     marginBottom: 16,
   },
@@ -591,10 +572,9 @@ const styles = StyleSheet.create({
   selectedSymbolText: {
     color: '#FFFFFF',
   },
+
+  // Stock Price Card
   stockPriceCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
@@ -602,7 +582,7 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   stockInfo: {
-    flex: 1,
+    alignItems: 'center',
   },
   currentSymbol: {
     fontSize: 14,
@@ -610,9 +590,14 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   currentPrice: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 24,
+    fontWeight: '700',
     color: '#1E293B',
+    marginBottom: 4,
+  },
+  changeText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   loadingIndicator: {
     alignItems: 'center',
@@ -622,82 +607,19 @@ const styles = StyleSheet.create({
     color: '#64748B',
     fontStyle: 'italic',
   },
-  loadingContainer: {
-    alignItems: 'center',
-    paddingVertical: 32,
-  },
-  chartContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  chart: {
-    height: 200,
-    padding: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyChart: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  emptyChartText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: '#94A3B8',
-    textAlign: 'center',
-  },
-  chartContent: {
-    flex: 1,
-    width: '100%',
-  },
-  plLine: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    height: 120,
-    marginBottom: 16,
-  },
-  plPoint: {
-    width: 2,
-    minHeight: 2,
-  },
-  chartAxisLabel: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: '#64748B',
-  },
-  metricsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  metricCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    width: '48%',
-    marginBottom: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  metricValue: {
-    fontSize: 20,
-    fontWeight: '700',
+
+  // Trading Interface
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: '600',
     color: '#1E293B',
-    marginBottom: 4,
+    marginBottom: 8,
   },
-  metricLabel: {
-    fontSize: 12,
-    color: '#64748B',
-    textAlign: 'center',
+  strikeSection: {
+    marginBottom: 20,
   },
   strikesContainer: {
-    marginBottom: 16,
+    marginBottom: 8,
   },
   strikeButton: {
     backgroundColor: '#F1F5F9',
@@ -720,9 +642,13 @@ const styles = StyleSheet.create({
   selectedStrikeText: {
     color: '#FFFFFF',
   },
+
+  optionTypeSection: {
+    marginBottom: 20,
+  },
   optionTypeContainer: {
     flexDirection: 'row',
-    marginBottom: 16,
+    gap: 8,
   },
   optionTypeButton: {
     flex: 1,
@@ -732,7 +658,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
     borderRadius: 12,
     padding: 12,
-    marginHorizontal: 4,
     borderWidth: 2,
     borderColor: '#E2E8F0',
   },
@@ -749,16 +674,19 @@ const styles = StyleSheet.create({
   selectedOptionTypeText: {
     color: '#FFFFFF',
   },
+
+  actionSection: {
+    marginBottom: 20,
+  },
   actionContainer: {
     flexDirection: 'row',
-    marginBottom: 16,
+    gap: 8,
   },
   actionButton: {
     flex: 1,
     backgroundColor: '#F8FAFC',
     borderRadius: 12,
     padding: 12,
-    marginHorizontal: 4,
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#E2E8F0',
@@ -775,17 +703,49 @@ const styles = StyleSheet.create({
   selectedActionText: {
     color: '#FFFFFF',
   },
-  addButton: {
+
+  quantitySection: {
+    marginBottom: 20,
+  },
+  quantityContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  quantityButton: {
+    backgroundColor: '#3B82F6',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quantityButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  quantityText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1E293B',
+    minWidth: 40,
+    textAlign: 'center',
+  },
+
+  // Execute Button
+  executeButton: {
     borderRadius: 12,
     overflow: 'hidden',
   },
-  addButtonGradient: {
+  executeButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
   },
-  addButtonText: {
+  executeButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
@@ -794,23 +754,8 @@ const styles = StyleSheet.create({
   disabledButton: {
     opacity: 0.6,
   },
-  positionsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  clearButton: {
-    backgroundColor: '#FEF2F2',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  clearButtonText: {
-    color: '#DC2626',
-    fontSize: 12,
-    fontWeight: '600',
-  },
+
+  // Position Cards
   positionCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
@@ -830,125 +775,23 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1E293B',
   },
-  positionStrike: {
-    fontSize: 16,
-    fontWeight: '600',
+  closeButton: {
+    padding: 4,
+  },
+  positionSymbol: {
+    fontSize: 14,
     color: '#3B82F6',
+    fontWeight: '600',
+    marginBottom: 4,
   },
   positionDetails: {
     fontSize: 14,
     color: '#64748B',
-    marginBottom: 4,
+    marginBottom: 2,
   },
-  positionValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#059669',
-  },
-  actionButtonsContainer: {
-    flexDirection: 'row',
-    padding: 24,
-    paddingTop: 8,
-    gap: 12,
-  },
-  secondaryButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  secondaryButtonText: {
-    color: '#64748B',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  primaryButton: {
-    flex: 1,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  primaryButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-  },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  toggleButton: {
-    backgroundColor: '#F1F5F9',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  toggleButtonText: {
-    color: '#3B82F6',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  strategiesContainer: {
-    marginBottom: 16,
-  },
-  strategyCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginRight: 12,
-    width: 200,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  selectedStrategy: {
-    backgroundColor: '#3B82F6',
-    borderColor: '#3B82F6',
-  },
-  strategyName: {
+  positionPL: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1E293B',
-    marginBottom: 4,
-  },
-  selectedStrategyText: {
-    color: '#FFFFFF',
-  },
-  strategyDescription: {
-    fontSize: 12,
-    color: '#64748B',
-    marginBottom: 12,
-    lineHeight: 16,
-  },
-  strategyMeta: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  difficultyBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  difficultyText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  riskBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  riskText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    marginTop: 4,
   },
 });
