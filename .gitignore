@@ -36,3 +36,16 @@ yarn-error.*
 
 backend/secret.env
 
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.env
+node_modules/
+.DS_Store
