@@ -29,7 +29,10 @@ yarn-error.*
 
 # local env files
 .env*.local
-.env
+*.env
 
 # typescript
 *.tsbuildinfo
+
+backend/secret.env
+
