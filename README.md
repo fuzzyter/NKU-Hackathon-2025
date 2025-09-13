@@ -54,6 +54,7 @@ A comprehensive options trading simulator built with React Native and Expo, desi
 - **Icons**: Lucide React Native
 - **Language**: TypeScript
 - **State Management**: React Hooks
+- **Backend**: Supabase (Database, Authentication, Real-time)
 
 ## 📱 Screens
 
@@ -86,12 +87,26 @@ A comprehensive options trading simulator built with React Native and Expo, desi
    npm install
    ```
 
-3. **Start the development server**
+3. **Set up Supabase**
+   - Create a new project at [supabase.com](https://supabase.com)
+   - Go to Settings > API to get your project URL and anon key
+   - Update `app.json` with your Supabase credentials:
+     ```json
+     "extra": {
+       "supabaseUrl": "your_supabase_project_url_here",
+       "supabaseAnonKey": "your_supabase_anon_key_here"
+     }
+     ```
+   - Run the SQL schema in your Supabase SQL Editor:
+     ```bash
+   - Copy the contents of `supabase-schema.sql` and run it in your Supabase project
+
+4. **Start the development server**
    ```bash
    npm run dev
    ```
 
-4. **Run on your device**
+5. **Run on your device**
    - Scan the QR code with Expo Go app (mobile)
    - Press `w` for web version
    - Press `i` for iOS simulator
@@ -143,10 +158,57 @@ Trading Simulator/
 │   ├── riskCalculator.ts  # Risk calculations
 │   ├── newsService.ts     # News data
 │   ├── leaderboardService.ts # Leaderboard data
-│   └── educationService.ts # Education content
+│   ├── educationService.ts # Education content
+│   ├── authService.ts     # Supabase authentication
+│   └── supabaseLeaderboardService.ts # Supabase leaderboard
+├── lib/                   # Library configurations
+│   └── supabase.ts        # Supabase client setup
+├── components/            # Reusable components
+│   └── SupabaseExample.tsx # Supabase integration example
 ├── hooks/                 # Custom React hooks
 │   └── useFrameworkReady.ts
 └── assets/               # Images and icons
+```
+
+## 🔧 Supabase Setup
+
+### Database Schema
+The project includes a comprehensive database schema with the following tables:
+- `users` - User profiles and trading statistics
+- `user_activities` - User activity tracking
+- `trades` - Trading history and positions
+- `education_content` - Learning materials
+- `user_education_progress` - User learning progress
+- `news` - Market news and updates
+
+### Authentication
+- Email/password authentication
+- Google OAuth integration
+- Row Level Security (RLS) policies
+- User profile management
+
+### Real-time Features
+- Live leaderboard updates
+- Real-time user activities
+- Live trading data synchronization
+
+### Usage Example
+```typescript
+import { supabase } from './lib/supabase'
+import { authService } from './services/authService'
+
+// Sign up a new user
+const { user, error } = await authService.signUp(email, password, username)
+
+// Get leaderboard data
+const leaderboard = await supabaseLeaderboardService.getLeaderboard('total_profit', 10)
+
+// Subscribe to real-time updates
+supabase
+  .channel('leaderboard')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, 
+    (payload) => console.log('Change received!', payload))
+  .subscribe()
 ```
 
 ## 🎯 Key Features Explained

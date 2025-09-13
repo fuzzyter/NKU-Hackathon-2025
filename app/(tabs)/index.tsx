@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Play, Lock, CircleCheck as CheckCircle, Star, Zap } from 'lucide-react-native';
+import { Play, Lock, CircleCheck as CheckCircle, Star, Zap, BookOpen } from 'lucide-react-native';
+import QuizComponent from '../../components/QuizComponent';
+import { QuizResult, quizService } from '../../services/quizService';
 
 const QUESTS = [
   {
@@ -9,9 +11,11 @@ const QUESTS = [
     title: 'What is an Option?',
     description: 'Learn the fundamentals of options contracts',
     xp: 50,
-    status: 'completed',
+    status: 'available',
     module: 'Options Basics',
-    difficulty: 'Beginner'
+    difficulty: 'Beginner',
+    quizId: 'what-is-option',
+    type: 'quiz'
   },
   {
     id: 2,
@@ -20,16 +24,20 @@ const QUESTS = [
     xp: 75,
     status: 'available',
     module: 'Options Basics',
-    difficulty: 'Beginner'
+    difficulty: 'Beginner',
+    quizId: 'call-option-basics',
+    type: 'quiz'
   },
   {
     id: 3,
     title: 'The Put Option',
     description: 'Learn bearish strategies with put options',
     xp: 75,
-    status: 'locked',
+    status: 'available',
     module: 'Options Basics',
-    difficulty: 'Beginner'
+    difficulty: 'Beginner',
+    quizId: 'put-option-basics',
+    type: 'quiz'
   },
   {
     id: 4,
@@ -38,7 +46,8 @@ const QUESTS = [
     xp: 100,
     status: 'locked',
     module: 'Income Generation',
-    difficulty: 'Intermediate'
+    difficulty: 'Intermediate',
+    type: 'lesson'
   },
   {
     id: 5,
@@ -47,7 +56,8 @@ const QUESTS = [
     xp: 100,
     status: 'locked',
     module: 'Income Generation',
-    difficulty: 'Intermediate'
+    difficulty: 'Intermediate',
+    type: 'lesson'
   }
 ];
 
@@ -63,13 +73,43 @@ const USER_DATA = {
 
 export default function QuestDashboard() {
   const [selectedQuest, setSelectedQuest] = useState<number | null>(null);
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [currentQuizId, setCurrentQuizId] = useState<string>('');
+  const [userData, setUserData] = useState(USER_DATA);
 
-  const getStatusIcon = (status: string) => {
+  const handleQuestPress = (quest: any) => {
+    if (quest.status === 'locked') return;
+    
+    if (quest.type === 'quiz' && quest.quizId) {
+      setCurrentQuizId(quest.quizId);
+      setShowQuiz(true);
+    } else {
+      // Handle other quest types (lessons, etc.)
+      setSelectedQuest(selectedQuest === quest.id ? null : quest.id);
+    }
+  };
+
+  const handleQuizComplete = (result: QuizResult) => {
+    // Update user XP and quest status
+    setUserData(prev => ({
+      ...prev,
+      xp: prev.xp + result.xpEarned,
+      completedQuests: prev.completedQuests + 1
+    }));
+    
+    setShowQuiz(false);
+    setCurrentQuizId('');
+    
+    // You could also update the quest status to 'completed' here
+    // and unlock the next quest
+  };
+
+  const getStatusIcon = (status: string, type: string) => {
     switch (status) {
       case 'completed':
         return <CheckCircle size={24} color="#10B981" />;
       case 'available':
-        return <Play size={24} color="#3B82F6" />;
+        return type === 'quiz' ? <BookOpen size={24} color="#3B82F6" /> : <Play size={24} color="#3B82F6" />;
       case 'locked':
         return <Lock size={24} color="#9CA3AF" />;
       default:
@@ -103,7 +143,7 @@ export default function QuestDashboard() {
     }
   };
 
-  const progressPercentage = (USER_DATA.xp / USER_DATA.nextLevelXp) * 100;
+  const progressPercentage = (userData.xp / userData.nextLevelXp) * 100;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -111,7 +151,7 @@ export default function QuestDashboard() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.welcomeText}>Welcome back,</Text>
-          <Text style={styles.nameText}>{USER_DATA.name}!</Text>
+          <Text style={styles.nameText}>{userData.name}!</Text>
           
           {/* Progress Card */}
           <LinearGradient
@@ -121,15 +161,15 @@ export default function QuestDashboard() {
             <View style={styles.progressHeader}>
               <View style={styles.levelBadge}>
                 <Star size={16} color="#FFFFFF" />
-                <Text style={styles.levelText}>Level {USER_DATA.level}</Text>
+                <Text style={styles.levelText}>Level {userData.level}</Text>
               </View>
               <View style={styles.streakBadge}>
                 <Zap size={14} color="#F59E0B" />
-                <Text style={styles.streakText}>{USER_DATA.streak} day streak</Text>
+                <Text style={styles.streakText}>{userData.streak} day streak</Text>
               </View>
             </View>
             
-            <Text style={styles.xpText}>{USER_DATA.xp} / {USER_DATA.nextLevelXp} XP</Text>
+            <Text style={styles.xpText}>{userData.xp} / {userData.nextLevelXp} XP</Text>
             
             <View style={styles.progressBarContainer}>
               <View style={styles.progressBar}>
@@ -140,7 +180,7 @@ export default function QuestDashboard() {
             </View>
             
             <Text style={styles.progressSubtext}>
-              {USER_DATA.completedQuests} of {USER_DATA.totalQuests} quests completed
+              {userData.completedQuests} of {userData.totalQuests} quests completed
             </Text>
           </LinearGradient>
         </View>
@@ -157,14 +197,14 @@ export default function QuestDashboard() {
                 selectedQuest === quest.id && styles.selectedQuest,
                 quest.status === 'locked' && styles.lockedQuest
               ]}
-              onPress={() => setSelectedQuest(selectedQuest === quest.id ? null : quest.id)}
+              onPress={() => handleQuestPress(quest)}
               disabled={quest.status === 'locked'}
             >
               <LinearGradient
                 colors={getStatusColor(quest.status)}
                 style={styles.questIcon}
               >
-                {getStatusIcon(quest.status)}
+                {getStatusIcon(quest.status, quest.type)}
               </LinearGradient>
               
               <View style={styles.questContent}>
@@ -204,20 +244,34 @@ export default function QuestDashboard() {
           <Text style={styles.sectionTitle}>Quick Stats</Text>
           <View style={styles.statsGrid}>
             <View style={styles.statCard}>
-              <Text style={styles.statNumber}>{USER_DATA.xp}</Text>
+              <Text style={styles.statNumber}>{userData.xp}</Text>
               <Text style={styles.statLabel}>Total XP</Text>
             </View>
             <View style={styles.statCard}>
-              <Text style={styles.statNumber}>{USER_DATA.level}</Text>
+              <Text style={styles.statNumber}>{userData.level}</Text>
               <Text style={styles.statLabel}>Current Level</Text>
             </View>
             <View style={styles.statCard}>
-              <Text style={styles.statNumber}>{USER_DATA.streak}</Text>
+              <Text style={styles.statNumber}>{userData.streak}</Text>
               <Text style={styles.statLabel}>Day Streak</Text>
             </View>
           </View>
         </View>
       </ScrollView>
+
+      {/* Quiz Modal */}
+      <Modal
+        visible={showQuiz}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={() => setShowQuiz(false)}
+      >
+        <QuizComponent
+          quizId={currentQuizId}
+          onComplete={handleQuizComplete}
+          onClose={() => setShowQuiz(false)}
+        />
+      </Modal>
     </SafeAreaView>
   );
 }

@@ -21,6 +21,10 @@
     "plugins": ["expo-router", "expo-font", "expo-web-browser"],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "supabaseUrl": "your_supabase_project_url_here",
+      "supabaseAnonKey": "your_supabase_anon_key_here"
     }
   }
 }
